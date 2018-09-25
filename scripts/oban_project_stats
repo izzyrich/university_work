@@ -1,0 +1,526 @@
+# Oban field project stats
+# September 2018 
+# Izzy Rich, Jasmine Hussein, Juan Pablo Lobo-Guerrero, Gabriele Negro, Sophie Barber, Beth Scott
+--------------------------------------
+
+# Define functions ----
+theme_my_own <- function(){
+  theme_bw()+ 
+    theme(axis.text.x = element_text(size = 30),
+          axis.text.y = element_text(size = 30),
+          axis.title.x = element_text(size = 50, face = "plain"),             
+          axis.title.y = element_text(size = 50, face = "plain"),             
+          panel.grid.major.x = element_blank(),                                          
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),  
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), units = , "cm"),
+          plot.title = element_text(size = 10, vjust = 1, hjust = 0.5),
+          legend.text = element_text(size = 50),          
+          legend.title = element_blank(),                              
+          legend.position = c(0.85, 0.2))
+}  
+
+
+theme_my_own2 <- function(){
+  theme_bw()+ 
+    theme(axis.text.x = element_text(size = 30),
+          axis.text.y = element_text(size = 30),
+          axis.title.x = element_text(size = 50, face = "plain"),             
+          axis.title.y = element_text(size = 50, face = "plain"),             
+          panel.grid.major.x = element_blank(),                                          
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),  
+          plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), units = , "cm"),
+          plot.title = element_text(size = 10, vjust = 1, hjust = 0.5),
+          legend.text = element_text(size = 50),          
+          legend.title = element_blank(),                              
+          legend.position = c(0.85, 0.8))
+}  
+# Set working directory ----
+setwd("~/Documents/Edinburgh Year 4/Oban /Field project/Project data")
+
+# Packages ----
+library(ggplot2)
+library(dplyr)
+library(car)
+library(MuMIn)
+library(lme4)
+library(nlme)
+library(gridExtra)
+
+# interception/richness relationship graph 1 -----
+
+# import data 
+graph1 <- read.csv("rainfall_richness.csv")
+
+# check data
+head(graph1)
+summary(graph1)
+str(graph1)
+
+# format data 
+levels(graph1$species)[levels(graph1$species) == "hazel"] <- "Hazel"
+levels(graph1$species)[levels(graph1$species) == "oak"] <- "Oak"
+levels(graph1$species)[levels(graph1$species) == "ash"] <- "Ash"
+
+# check assumptions 
+hist(graph1$richness)
+model.resid <- resid(rainfall.richness.model)
+shapiro.test(model.resid)
+durbinWatsonTest(rainfall.richness.model)
+
+# linear model 
+rainfall.richness.model <- glm(richness ~ rainfall,family = "poisson", data = graph1)
+summary(rainfall.richness.model)
+
+# pseudo r-squared 
+r.squaredGLMM(rainfall.richness.model)
+
+# Graph 1 
+(figure1 <- ggplot(graph1, aes(x = rainfall, y = richness, 
+                               colour = species, fill = species)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    theme_my_own() +
+    labs(x = "Rainfall interception (mm)", y = "Functional group richness") +
+    annotate("text", x = 2, y = 10, 
+             label = "paste(R ^ 2, \" = 0.009\")", parse = TRUE))
+
+# percent composition barchart -----
+
+# import data
+barchart <- read.csv("functional_percent.csv")
+
+# format data 
+levels(barchart$species)[levels(barchart$species) == "hazel"] <- "Hazel"
+levels(barchart$species)[levels(barchart$species) == "ash"] <- "Ash"
+levels(barchart$species)[levels(barchart$species) == "oak"] <- "Oak"
+
+levels(barchart$functional_group)[levels(barchart$functional_group) == "bareground"] <- "Bareground"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "fern"] <- "Ferns"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "grass"] <- "Grasses"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "leaf_litter"] <- "Leaf litter"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "herb"] <- "Herbaceous plants"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "lichen"] <- "Lichen"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "moss"] <- "Mosses"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "mushroom"] <- "Fungi"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "sedge"] <- "Sedges"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "shrub"] <- "Shrubs"
+levels(barchart$functional_group)[levels(barchart$functional_group) == "tree"] <- "Trees"
+
+
+# barchart
+
+(bar_graph <- ggplot() + geom_bar(aes(y = percentage, x = species, fill = functional_group), 
+                                  data = barchart,
+                                  stat="identity") + 
+    scale_fill_manual(values = c("#E0FFFF", "#96CDCD", "#668B8B", "#36648B", "#363636", "#454545",
+                                 "#8F8F8F", "thistle3", "#A351A3AD", "rosybrown4", "#9053A3E6")) + 
+    labs(y = "Average percentage cover", x = "Woodland type", fill = "Groups"))
+
+
+# interception/shannon diversity relationship graph -----
+
+# import data 
+graph2 <- read.csv("rainfall_shannon.csv")
+
+# format data 
+levels(graph2$species)[levels(graph2$species) == "hazel"] <- "Hazel"
+levels(graph2$species)[levels(graph2$species) == "oak"] <- "Oak"
+levels(graph2$species)[levels(graph2$species) == "ash"] <- "Ash"
+
+# check assumptions 
+hist(graph2$shannon)
+model.resid2 <- resid(rainfall.diversity.model)
+shapiro.test(model.resid2)
+durbinWatsonTest(rainfall.diversity.model)
+
+# linear model 
+rainfall.diversity.model <- lm(shannon ~ rainfall, data = mixed_data)
+summary(rainfall.diversity.model)
+
+# Graph 2 
+(figure2 <- ggplot(graph2, aes(x = rainfall, y = shannon, 
+                               colour = species, fill = species)) +
+    geom_point(size = 7) +
+    geom_smooth(method = lm, size = 3) +
+    theme_my_own() +
+    labs(x = "Rainfall interception (mm)", y = "Shannon diversity index") +
+    annotate("text", x = 0, y = 2, 
+             label = "paste(R ^ 2, \" = 0.15\")", size = 15, parse = TRUE))
+
+
+# interception shannon diversity FOR ASH ------------------
+
+graph6 <- read.csv("rainfall_shannon_ash.csv")
+
+# check assumptions 
+hist(graph6$shannon)
+model.resid6 <- resid(rainfall.diversity.ash.model)
+shapiro.test(model.resid6)
+durbinWatsonTest(rainfall.diversity.ash.model)
+
+# linear model 
+rainfall.diversity.ash.model <- lm(shannon ~ rainfall, data = graph6)
+summary(rainfall.diversity.ash.model)
+
+# Graph 6 
+(figure6 <- ggplot(graph6, aes(x = rainfall, y = shannon)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    theme_my_own() +
+    labs(x = "Rainfall interception (mm)", y = "Shannon diversity index") +
+    annotate("text", x = 2, y = 2, 
+             label = "paste(R ^ 2, \" = 0.14\")", parse = TRUE))
+
+
+# LAI and richness --------------
+
+# import data 
+graph3 <- read.csv("lai_richness.csv")
+
+# check data
+head(graph3)
+summary(graph3)
+str(graph3)
+
+# format data 
+levels(graph3$species)[levels(graph3$species) == "hazel"] <- "Hazel"
+levels(graph3$species)[levels(graph3$species) == "oak"] <- "Oak"
+levels(graph3$species)[levels(graph3$species) == "ash"] <- "Ash"
+
+# check assumptions 
+hist(graph3$richness)
+model.resid3 <- resid(lai.richness.model)
+shapiro.test(model.resid3)
+durbinWatsonTest(lai.richness.model)
+
+# linear model 
+lai.richness.model <- glm(richness ~ lai,family = "poisson", data = graph3)
+summary(lai.richness.model)
+
+# pseudo r-squared 
+r.squaredGLMM(lai.richness.model)
+
+# Graph 3
+(figure3 <- ggplot(graph3, aes(x = lai, y = richness, 
+                               colour = species, fill = species)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    theme_my_own2() +
+    labs(x = expression(paste("LAI ", "(", "m"^"2", "/", "m"^"2", ")")),
+         y = "Functional group richness") +
+    annotate("text", x = 1.5, y = 10, label = "paste(R ^ 2, \" = 0.0004\")", parse = TRUE))
+
+# LAI vs shannon diversity ----------
+
+graph4 <- read.csv("lai_shannon.csv")
+
+# format data 
+levels(graph4$species)[levels(graph4$species) == "hazel"] <- "Hazel"
+levels(graph4$species)[levels(graph4$species) == "oak"] <- "Oak"
+levels(graph4$species)[levels(graph4$species) == "ash"] <- "Ash"
+
+# check assumptions 
+hist(graph4$shannon)
+model.resid4 <- resid(lai.diversity.model)
+shapiro.test(model.resid4)
+durbinWatsonTest(lai.diversity.model)
+
+# linear model 
+lai.diversity.model <- lm(shannon ~ lai, data = graph4)
+summary(lai.diversity.model)
+
+# Graph 4 
+(figure4 <- ggplot(graph4, aes(x = lai, y = shannon, 
+                               colour = species, fill = species)) +
+    geom_point(size = 7) +
+    geom_smooth(method = lm, size = 3) +
+    theme_my_own2() +
+    labs(x = expression(paste("LAI ", "(", "m"^"2", "/", "m"^"2", ")")), y = "Shannon diversity index") +
+    annotate("text", x = 1.5, y = 2, 
+             label = "paste(R ^ 2, \" = -0.03\")", size = 15, parse = TRUE))
+
+
+# LAI vs shannon diversity FOR ASH ----------
+
+graph7 <- read.csv("lai_shannon_ash.csv")
+
+# check assumptions 
+hist(graph7$shannon)
+model.resid7 <- resid(lai.diversity.ash.model)
+shapiro.test(model.resid7)
+durbinWatsonTest(lai.diversity.ash.model)
+
+# linear model 
+lai.diversity.ash.model <- lm(shannon ~ lai, data = graph7)
+summary(lai.diversity.ash.model)
+
+# Graph 4 
+(figure6 <- ggplot(graph6, aes(x = lai, y = shannon)) +
+    geom_point() +
+    geom_smooth(method = lm) +
+    theme_my_own2() +
+    labs(x = expression(paste("LAI ", "(", "m"^"2", "/", "m"^"2", ")")), y = "Shannon diversity index") +
+    annotate("text", x = 1.5, y = 2, 
+             label = "paste(R ^ 2, \" = -0.08\")", parse = TRUE))
+
+
+# lai vs rainfall correlation ------------
+
+correlation_data <- read.csv("lai_rainfall.csv")
+
+# correlation
+(corr <- cor.test(x=correlation_data$lai, y=correlation_data$rainfall, method = 'spearman'))
+
+(figure10 <- ggplot(correlation_data, aes(x = lai, y = rainfall)) +
+    geom_point(colour="black", alpha=0.8) +
+    geom_smooth(method = lm, colour="forestgreen", fill="forestgreen") +
+    theme_my_own() +
+    labs(x = "lai", y = "rainfall"))
+
+
+
+
+# lai vs rainfall FOR ASH -----------
+
+ash_correlation <- read.csv("lai_rainfall_ash.csv")
+
+# ash correlation 
+(ash_corr <- cor.test(x=ash_correlation$lai, y=ash_correlation$rainfall, method = 'spearman'))
+
+
+# lai vs rainfall correlation FOR HAZEL --------
+
+hazel_correlation <- read.csv("lai_rainfall_hazel.csv")
+
+# hazel correlation 
+(hazel_corr <- cor.test(x=hazel_correlation$lai, y=hazel_correlation$rainfall, method = 'spearman'))
+
+# lai vs rainfall correlation FOR OAK --------
+
+oak_correlation <- read.csv("lai_rainfall_oak.csv")
+
+# oak correlation 
+(oak_corr <- cor.test(x=oak_correlation$lai, y=oak_correlation$rainfall, method = 'spearman'))
+
+
+# mixed model controlling for the effect of species ------------------------
+
+# load data
+rainfall2 <- scale(mixed_data$rainfall)
+lai2 <- scale(mixed_data$lai)
+
+mixed_data <- read.csv("lai_rainfall_shannon.csv")
+
+# model
+mixed.lme <- lme(shannon ~ lai2 + rainfall2, random=~1|species, data = mixed_data)
+summary(mixed.lme)
+
+r.squaredGLMM(mixed.lme)
+gar# plot 
+ggplot(aes(lai, shannon), data = mixed_data) + 
+  geom_point() + 
+  facet_wrap(~ species) + 
+  xlab("lai") + 
+  ylab("shannon")
+
+ggplot(mixed_data, aes(x = lai, y = shannon, colour = species)) +
+  facet_wrap(~species, nrow=3) +
+  geom_point() +
+  theme_classic() +
+  geom_line(data = cbind(mixed_data, pred = predict(mixed.lmer)), aes(y = pred)) +
+  theme(legend.position = "none")
+
+# stem density and shannon
+
+stem.model <- lm(shannon ~ species, data = mixed_data)
+summary(stem.model)
+
+
+mixed_model <- lm(shannon ~ rainfall + lai + lai*species + rainfall*species + species, data=mixed_data)
+summary(mixed_model)
+
+
+# model for richness
+mixed.lme2 <- lme(richness ~ lai2 + rainfall2, random=~1|species, data = mixed_data)
+mod_glmer1<-glmer(richness~ lai2 + rainfall2 +(1|species),data=mixed_data,family="poisson")
+summary(mod_glmer1)
+
+r.squaredGLMM(mod_glmer1)
+# theme for panel 
+
+theme_marine <- function(){
+  theme_bw() +
+    theme(axis.text = element_text(size = 15),
+          axis.title = element_text(size = 20),
+          axis.line.x = element_line(color="black"),
+          axis.line.y = element_line(color="black"),
+          panel.border = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),
+          plot.margin = unit(c(1, 1, 1, 1), units = , "cm"),
+          plot.title = element_text(size = 20),
+          legend.text = element_text(size = 12),
+          legend.title = element_blank(),
+          legend.position = c(0.9, 0.9),
+          legend.key = element_blank(),
+          legend.background = element_rect(color = "black",
+                                           fill = "transparent",
+                                           size = 2, linetype="blank"))
+}
+# trying to make a panel RICHNESS lol ----------
+
+# for ash
+
+ash3 <- filter(mixed_data, species == "ash")
+
+(ash_panel3 <- ggplot(ash, aes(x = rainfall, y = richness, shape = as.factor(species))) +
+  geom_point(fill = "firebrick3", size = 3) +
+  scale_shape_manual(values = c(21, 23, 24)) +
+  geom_smooth(method = "glm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
+  labs(x = "", y = "Functional group richness", title = "a. Ash") +
+  theme_marine() +
+  guides(shape = FALSE))
+
+# for hazel 
+
+hazel3 <- filter(mixed_data, species == "hazel")
+
+(hazel_panel3 <- ggplot(hazel, aes(x = rainfall, y = richness, shape = as.factor(species))) +
+    geom_point(fill = "dodgerblue3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "dodgerblue3", fill = "dodgerblue3", alpha = 0.4) +
+    labs(x = "Rainfall interception (mm)", y = "", title = "b. Hazel") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for oak
+
+oak3 <- filter(mixed_data, species == "oak")
+
+(oak_panel3 <- ggplot(oak, aes(x = rainfall, y = richness, shape = as.factor(species))) +
+    geom_point(fill = "darkmagenta", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "darkmagenta", fill = "darkmagenta", alpha = 0.4) +
+    labs(x = "", y = "", title = "c. Oak") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# combine to a panel
+row4 <- grid.arrange(ash_panel3, hazel_panel3, oak_panel3, ncol = 3, widths = c(1, 1, 1))
+
+# trying to make a panel except for lai RICHNESS lol ----------
+
+# for ash
+
+(ash_panel4 <- ggplot(ash, aes(x = lai, y = richness, shape = as.factor(species))) +
+    geom_point(fill = "firebrick3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
+    labs(x = "", y = "Functional group richness", title = "a. Ash") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for hazel 
+
+(hazel_panel4 <- ggplot(hazel, aes(x = lai, y = richness, shape = as.factor(species))) +
+    geom_point(fill = "dodgerblue3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "dodgerblue3", fill = "dodgerblue3", alpha = 0.4) +
+    labs(x = expression(paste("LAI ", "(", "m"^"2", "/", "m"^"2", ")")), y = "", title = "b. Hazel") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for oak
+
+(oak_panel4 <- ggplot(oak, aes(x = lai, y = richness, shape = as.factor(species))) +
+    geom_point(fill = "darkmagenta", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "darkmagenta", fill = "darkmagenta", alpha = 0.4) +
+    labs(x = "", y = "", title = "c. Oak") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# combine to a panel
+row5 <- grid.arrange(ash_panel4, hazel_panel4, oak_panel4, ncol = 3, widths = c(1, 1, 1))
+
+# trying to make a panel lol ----------
+
+# for ash
+
+ash <- filter(mixed_data, species == "ash")
+
+(ash_panel <- ggplot(ash, aes(x = rainfall, y = shannon, shape = as.factor(species))) +
+    geom_point(fill = "firebrick3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
+    labs(x = "", y = "Shannon diversity", title = "a. Ash") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for hazel 
+
+hazel <- filter(mixed_data, species == "hazel")
+
+(hazel_panel <- ggplot(hazel, aes(x = rainfall, y = shannon, shape = as.factor(species))) +
+    geom_point(fill = "dodgerblue3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "dodgerblue3", fill = "dodgerblue3", alpha = 0.4) +
+    labs(x = "Rainfall interception (mm)", y = "", title = "b. Hazel") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for oak
+
+oak <- filter(mixed_data, species == "oak")
+
+(oak_panel <- ggplot(oak, aes(x = rainfall, y = shannon, shape = as.factor(species))) +
+    geom_point(fill = "darkmagenta", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "darkmagenta", fill = "darkmagenta", alpha = 0.4) +
+    labs(x = "", y = "", title = "c. Oak") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# combine to a panel
+row1 <- grid.arrange(ash_panel, hazel_panel, oak_panel, ncol = 3, widths = c(1, 1, 1))
+
+# trying to make a panel except for lai lol ----------
+
+# for ash
+
+(ash_panel2 <- ggplot(ash, aes(x = lai, y = shannon, shape = as.factor(species))) +
+   geom_point(fill = "firebrick3", size = 3) +
+   scale_shape_manual(values = c(21, 23, 24)) +
+   geom_smooth(method = "lm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
+   labs(x = "", y = "Shannon diversity", title = "a. Ash") +
+   theme_marine() +
+   guides(shape = FALSE))
+
+# for hazel 
+
+(hazel_panel2 <- ggplot(hazel, aes(x = lai, y = shannon, shape = as.factor(species))) +
+    geom_point(fill = "dodgerblue3", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "dodgerblue3", fill = "dodgerblue3", alpha = 0.4) +
+    labs(x = expression(paste("LAI ", "(", "m"^"2", "/", "m"^"2", ")")), y = "", title = "b. Hazel") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# for oak
+
+(oak_panel2 <- ggplot(oak, aes(x = lai, y = shannon, shape = as.factor(species))) +
+    geom_point(fill = "darkmagenta", size = 3) +
+    scale_shape_manual(values = c(21, 23, 24)) +
+    geom_smooth(method = "lm", colour = "darkmagenta", fill = "darkmagenta", alpha = 0.4) +
+    labs(x = "", y = "", title = "c. Oak") +
+    theme_marine() +
+    guides(shape = FALSE))
+
+# combine to a panel
+row2 <- grid.arrange(ash_panel2, hazel_panel2, oak_panel2, ncol = 3, widths = c(1, 1, 1))
