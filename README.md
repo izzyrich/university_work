@@ -1,2 +1,3 @@
 # university_work
-All scripts related to university work and projects
+- Izzy Rich s1501956@sms.ed.ac.uk
+- All scripts related to university work and projects
