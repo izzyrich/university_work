@@ -459,7 +459,7 @@ ash <- filter(mixed_data, species == "ash")
     geom_point(fill = "firebrick3", size = 3) +
     scale_shape_manual(values = c(21, 23, 24)) +
     geom_smooth(method = "lm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
-    labs(x = "", y = "Shannon diversity", title = "a. Ash") +
+    labs(x = "", y = "Shannon diversity index", title = "a. Ash") +
     theme_marine() +
     guides(shape = FALSE))
 
@@ -498,7 +498,7 @@ row1 <- grid.arrange(ash_panel, hazel_panel, oak_panel, ncol = 3, widths = c(1, 
    geom_point(fill = "firebrick3", size = 3) +
    scale_shape_manual(values = c(21, 23, 24)) +
    geom_smooth(method = "lm", colour = "firebrick3", fill = "firebrick3", alpha = 0.4) +
-   labs(x = "", y = "Shannon diversity", title = "a. Ash") +
+   labs(x = "", y = "Shannon diversity index", title = "a. Ash") +
    theme_marine() +
    guides(shape = FALSE))
 
