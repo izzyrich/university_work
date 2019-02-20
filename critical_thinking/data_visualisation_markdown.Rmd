@@ -1,0 +1,68 @@
+---
+title: "data_visualisation"
+author: "transparency"
+date: "2/20/2019"
+output: word_document
+---
+
+This markdown document includes the code used for figure production for the Critical
+Thinking assignment. The figure aims to visualise how common selective reporting,
+p-hacking and HARKing are at the University of Edinburgh on an undergraduate level.
+My name is omitted for university anonymity purposes. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+First, I loaded all required packages, including the tidyverse, which contains ggplot2.
+ggplot2 is a great package for data visualisation.
+
+```{r, echo=TRUE, results = 'hide', message=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+I then set my working directory and loaded the data. Please note that if you are trying
+to reproduce this workflow, you will need to change the code to set it to your own working directory. This would be the folder where your data file is held. For access to the data,
+please see my GitHub (name omitted for university purposes), where the data and script can be 
+downloaded or cloned.
+
+```{r}
+setwd("~/Documents/Edinburgh Year 4/Critical Thinking/My tutorial")
+```
+
+```{r}
+data <- read_excel("~/Documents/Edinburgh Year 4/Critical Thinking/My tutorial/data.xlsx")
+```
+
+I then re-ordered the levels (yes and no), so that "yes" columns would appear first.
+
+```{r}
+data$yes_no <- factor(data$yes_no, levels = c("Yes", "No"))
+```
+
+I then produced a barplot using ggplot2 code. I decided to create a plot that removed all 
+unnecessary aspects, such as the x-axis line and the grid lines. I chose a colour scheme 
+that is colourblind friendly.
+
+```{r, echo=TRUE, results = 'hide', fig.show = 'hide'}
+(figure <- ggplot(data, aes(x = type, y = number, fill = yes_no)) +
+    geom_bar(position = position_dodge(), stat = "identity", colour = "black") +
+   geom_text(aes(label = number), vjust = -0.3, position = position_dodge(0.9), size = 3.5) +
+    scale_fill_manual(values = c("#1f78b4", "#a6cee3")) +
+    scale_colour_manual(values = c("#1f78b4", "#a6cee3")) +
+    scale_y_continuous(limits = c(0, 20)) +
+    theme_bw() +
+    ylab("Number of respondents\n") +                             
+    xlab("\nType of questionable practice")  +
+    theme(axis.ticks.x = element_blank(),
+          axis.text.x = element_text(size = 12, colour = "black"),
+          axis.text.y = element_text(size = 12, colour = "black"),
+          axis.title = element_text(size = 14, face = "plain"),
+          panel.grid = element_blank(),   
+          axis.line.y.left = element_line(colour = "black"),
+          legend.title = element_blank(),
+          panel.border = element_blank(),
+          plot.margin = unit(c(1,1,1,1), units = , "cm")))
+```
+
